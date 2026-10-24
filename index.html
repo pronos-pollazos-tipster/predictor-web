@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<title>PBCT</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="icono-192.png">
+<style>
+  :root { --fondo: #0d1512; --panel: #142019; --panel2: #1a2a21; --borde: #24382c; --texto: #e7f2ea; --suave: #93a99a;
+    --acento: #c6f432; --ok: #4ade80; --aviso: #fbbf24; --mal: #f87171; --local: #3b82f6; --empate: #7c8a82; --visit: #f97316; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--fondo); color: var(--texto); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+  header { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--fondo) 92%, transparent); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--borde); padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  header h1 { font-size: 1.05rem; margin: 0; flex: 1; } header h1 b { color: var(--acento); }
+  main { max-width: 760px; margin: 0 auto; padding: 12px 16px 40px; }
+  button { font: inherit; color: inherit; background: var(--panel2); border: 1px solid var(--borde); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+  button.primario { background: var(--acento); color: #0d1512; border-color: transparent; font-weight: 700; }
+  button.mini { padding: 4px 10px; font-size: .85rem; }
+  .tarjeta { background: var(--panel); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; margin: 12px 0; }
+  .nota { color: var(--suave); font-size: .86rem; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; scrollbar-width: none; }
+  .chips button { white-space: nowrap; border-radius: 99px; }
+  .chips button.activa { background: var(--acento); color: #0d1512; border-color: transparent; font-weight: 700; }
+  .partido { border-left: 4px solid var(--borde); }
+  .partido.Alta { border-left-color: var(--ok); } .partido.Media { border-left-color: var(--aviso); } .partido.Baja { border-left-color: var(--mal); }
+  .cab { display: flex; justify-content: space-between; gap: 8px; font-size: .82rem; color: var(--suave); }
+  .equipos { font-weight: 700; font-size: 1.02rem; margin: 4px 0 8px; }
+  .puesto { font-size: .72em; color: var(--suave); border: 1px solid var(--borde); border-radius: 6px; padding: 0 4px; margin-left: 3px; vertical-align: middle; }
+  .pick { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 6px 0; border-top: 1px dashed var(--borde); }
+  .pick:first-of-type { border-top: 0; }
+  .pick .m { flex: 1; } .pick .p { font-weight: 800; font-size: 1.1rem; } .pick .c { color: var(--suave); font-size: .85rem; min-width: 4.2em; text-align: right; }
+  .seg .p { color: var(--ok); }
+  .avisos { font-size: .82rem; color: var(--aviso); margin-top: 6px; }
+  .barra { display: flex; height: 18px; border-radius: 6px; overflow: hidden; font-size: .7rem; margin: 6px 0 2px; }
+  .barra div { display: flex; align-items: center; justify-content: center; color: #fff; min-width: 0; }
+  .combi .tot { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+  .combi .tot div { background: var(--panel2); border-radius: 10px; padding: 8px; text-align: center; }
+  .combi .tot b { display: block; font-size: 1.15rem; }
+  #login { position: fixed; inset: 0; background: #000; color: #fff; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 24px; z-index: 20; }
+  #login[hidden] { display: none; }
+  #login form { width: min(340px, 100%); display: flex; flex-direction: column; gap: 12px; }
+  #login form[hidden] { display: none; }
+  #login label { color: #fff; font-size: 1.05rem; letter-spacing: .02em; }
+  #login input { width: 100%; font: inherit; font-size: 1.1rem; padding: 12px; border-radius: 8px; border: 1px solid #fff; background: #000;
+    color: #fff; outline: none; }
+  #login input:focus { border-color: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .25); }
+  #login button { background: #000; color: #fff; border: 1px solid #fff; border-radius: 8px; padding: 12px; font-weight: 700; }
+  #login button:disabled { opacity: .5; }
+  #loginMsg { color: #fff; min-height: 1.4em; margin-top: 14px; text-align: center; width: min(340px, 100%); font-size: .95rem; }
+  .error { color: var(--mal); }
+  .vacio { text-align: center; color: var(--suave); padding: 24px 0; }
+  details summary { cursor: pointer; color: var(--suave); font-size: .9rem; }
+</style>
+</head>
+<body>
+<div id="login" hidden>
+  <form id="fClave" autocomplete="off">
+    <label for="clave">Contraseña</label>
+    <input id="clave" type="password" autocomplete="current-password" required>
+    <button type="submit" id="bClave">Enviar contraseña</button>
+  </form>
+  <form id="fCodigo" hidden autocomplete="off">
+    <label for="codigo">Código</label>
+    <input id="codigo" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" required>
+    <button type="submit" id="bCodigo">Enviar código</button>
+  </form>
+  <p id="loginMsg"></p>
+</div>
+<div id="app" hidden>
+  <header><h1><b>PBCT</b></h1><button class="mini" id="btnAvisos">🔔 Avisos</button><button class="mini" id="btnRecargar" title="Recargar">⟳</button><button class="mini" id="btnSalir" title="Salir">🔒</button></header>
+  <main>
+    <p id="hola" style="margin:4px 0 0;font-weight:700"></p>
+    <p class="nota" id="actualizado"></p>
+    <div class="chips" id="dias"></div>
+    <div class="chips" id="ligas"></div>
+    <div id="combinada"></div>
+    <div id="lista"></div>
+    <p class="nota" id="pie"></p>
+  </main>
+</div>
+<script src="config.js"></script>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = (x) => (x == null ? "–" : Math.round(x * 100) + "%");
+const n2 = (x) => (x == null ? "–" : Number(x).toFixed(2).replace(".", ","));
+const leer = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } };
+const guardar = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const E = { dia: null, liga: "todas", datos: null };
+
+// ---- Acceso: contraseña -> código por Telegram -> sesión (todo lo comprueba el servidor de Supabase) ----
+const C = window.CONFIG || {};
+function dispositivo() {
+  let d = leer("pbct_disp", null);
+  if (!d) { const b = new Uint8Array(16); crypto.getRandomValues(b); d = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join(""); guardar("pbct_disp", d); }
+  return d;
+}
+async function rpc(fn, args) {
+  const h = { "Content-Type": "application/json", apikey: C.supabase_clave };
+  if (!String(C.supabase_clave || "").startsWith("sb_")) h.Authorization = "Bearer " + C.supabase_clave;
+  const r = await fetch(`${C.supabase_url}/rest/v1/rpc/${fn}`, { method: "POST", headers: h, body: JSON.stringify(args) });
+  if (!r.ok) throw new Error("No se pudo conectar (" + r.status + ")");
+  return r.json();
+}
+const MENSAJES = { error: "Incorrecta.", bloqueado: "Acceso bloqueado.", caducado: "El código ha caducado. Vuelve a enviar la contraseña.", sesion: "" };
+function msg(t) { $("#loginMsg").textContent = t || ""; }
+function verLogin(paso) {
+  $("#app").hidden = true; $("#login").hidden = false;
+  $("#fClave").hidden = paso === "codigo"; $("#fCodigo").hidden = paso !== "codigo";
+  (paso === "codigo" ? $("#codigo") : $("#clave")).focus();
+}
+async function enviarClave(e) {
+  e.preventDefault();
+  const b = $("#bClave"); b.disabled = true; msg("");
+  try {
+    const r = await rpc("pbct_entrar", { clave: $("#clave").value, disp: dispositivo() });
+    $("#clave").value = "";
+    if (r.estado === "codigo") { E.ticket = r.ticket; verLogin("codigo"); msg(""); }
+    else { msg(MENSAJES[r.estado] || "Incorrecta."); if (r.estado === "bloqueado") $("#fClave").hidden = true; }
+  } catch (x) { msg(x.message); }
+  b.disabled = false;
+}
+async function enviarCodigo(e) {
+  e.preventDefault();
+  const b = $("#bCodigo"); b.disabled = true; msg("");
+  try {
+    const r = await rpc("pbct_codigo", { ticket: E.ticket, codigo: $("#codigo").value.trim(), disp: dispositivo() });
+    $("#codigo").value = ""; E.ticket = null;
+    if (r.estado === "ok") { guardar("pbct_sesion", r.token); await cargarDatos(); }
+    else { verLogin("clave"); msg(MENSAJES[r.estado] || "Incorrecto."); if (r.estado === "bloqueado") $("#fClave").hidden = true; }
+  } catch (x) { msg(x.message); }
+  b.disabled = false;
+}
+async function cargarDatos() {
+  const tok = leer("pbct_sesion", null);
+  if (!tok) { verLogin("clave"); return; }
+  try {
+    const r = await rpc("pbct_datos", { token: tok });
+    if (r.estado !== "ok") { guardar("pbct_sesion", null); verLogin("clave"); msg(MENSAJES[r.estado] || ""); if (r.estado === "bloqueado") $("#fClave").hidden = true; return; }
+    if (!r.datos) { $("#login").hidden = true; $("#app").hidden = false; $("#lista").innerHTML = `<div class="vacio">Todavía no hay datos. Vuelve en unos minutos.</div>`; return; }
+    E.datos = Object.assign({}, r.datos, { usuario: r.nombre, actualizado: r.datos.actualizado || r.actualizado });
+    $("#login").hidden = true; $("#app").hidden = false;
+    pintar();
+  } catch (x) { verLogin("clave"); msg(x.message); }
+}
+async function salir() {
+  const tok = leer("pbct_sesion", null);
+  guardar("pbct_sesion", null);
+  try { if (tok) await rpc("pbct_salir", { token: tok }); } catch (x) {}
+  location.reload();
+}
+
+const hoyISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+function nombreDia(f) {
+  const hoy = hoyISO(), man = new Date(Date.now() + 864e5); man.setMinutes(man.getMinutes() - man.getTimezoneOffset());
+  if (f === hoy) return "Hoy";
+  if (f === man.toISOString().slice(0, 10)) return "Mañana";
+  return new Date(f + "T12:00:00").toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function filaPick(icono, p, clase, cuota) {
+  if (!p) return "";
+  return `<div class="pick ${clase || ""}"><span class="m">${icono} ${esc(p.mercado)}</span><span class="p">${pct(p.prob)}</span>
+    <span class="c">${cuota ? "@ " + n2(cuota) : p.cuota_justa ? "justa " + n2(p.cuota_justa) : ""}</span></div>`;
+}
+
+function pintar() {
+  const d = E.datos;
+  const act = new Date(d.actualizado);
+  $("#hola").textContent = d.usuario ? `Hola, ${d.usuario}` : "";
+  $("#actualizado").innerHTML = `Actualizado ${act.toLocaleString("es-ES", { weekday: "long", hour: "2-digit", minute: "2-digit" })} · cuotas ${esc(d.casa)}`
+    + (d.ia && d.ia.activa ? " · 🧠 IA de números activa" : "");
+  const dias = [...new Set(d.partidos.map((p) => p.fecha))].filter((f) => f >= hoyISO()).sort();
+  if (!E.dia || !dias.includes(E.dia)) E.dia = dias[0];
+  $("#dias").innerHTML = dias.map((f) => `<button data-d="${f}" class="${f === E.dia ? "activa" : ""}">${esc(nombreDia(f))} · ${d.partidos.filter((p) => p.fecha === f).length}</button>`).join("");
+  const ligas = [...new Set(d.partidos.filter((p) => p.fecha === E.dia).map((p) => p.liga))];
+  if (E.liga !== "todas" && !ligas.includes(E.liga)) E.liga = "todas";
+  $("#ligas").innerHTML = ligas.length > 1 ? [`<button data-l="todas" class="${E.liga === "todas" ? "activa" : ""}">Todas</button>`]
+    .concat(ligas.map((l) => `<button data-l="${esc(l)}" class="${E.liga === l ? "activa" : ""}">${esc(l)}</button>`)).join("") : "";
+  document.querySelectorAll("#dias button").forEach((b) => (b.onclick = () => { E.dia = b.dataset.d; pintar(); scrollTo(0, 0); }));
+  document.querySelectorAll("#ligas button").forEach((b) => (b.onclick = () => { E.liga = b.dataset.l; pintar(); }));
+  // Combinada segura (de hoy y mañana el primer día; de 3 días el resto)
+  const cb = (E.dia === dias[0] ? d.combinadas["1"] : d.combinadas["3"]) || {};
+  const c = (cb.combinadas || [])[0];
+  $("#combinada").innerHTML = c ? `<div class="tarjeta combi"><b>🧩 Combinada segura · ${c.n} partidos</b>
+      <div class="tot"><div>Acierta<b>${pct(c.prob)}</b></div><div>Cuota<b>@ ${n2(c.cuota)}</b></div><div>Con 2 €<b>${n2(c.cobras_2)} €</b></div></div>
+      ${c.piernas.map((p) => `<div class="pick"><span class="m">${esc(p.apuesta)}<br><span class="nota">${esc(p.liga)} · ${esc(p.home)} – ${esc(p.away)} · ${esc(nombreDia(p.fecha))} ${esc(p.hora || "")}</span></span><span class="p">${pct(p.prob)}</span><span class="c">@ ${n2(p.cuota)}</span></div>`).join("")}
+      ${(cb.combinadas || []).length > 1 ? `<details><summary>Otras: ${cb.combinadas.slice(1).map((x) => `${x.n} partidos ${pct(x.prob)} @${n2(x.cuota)}`).join(" · ")}</summary>
+        ${cb.combinadas.slice(1).map((x) => `<p class="nota">${x.piernas.map((p) => `${esc(p.apuesta)} (${esc(p.home)} – ${esc(p.away)})`).join(" + ")}</p>`).join("")}</details>` : ""}</div>` : "";
+  const lista = d.partidos.filter((p) => p.fecha === E.dia && (E.liga === "todas" || p.liga === E.liga));
+  const pu = (x) => (x ? `<span class="puesto">${x}º</span>` : "");
+  $("#lista").innerHTML = lista.length ? lista.map((p) => `<div class="tarjeta partido ${esc(p.nivel)}">
+      <div class="cab"><span>${esc(p.liga)}</span><span>${esc(p.hora || "")} · fiabilidad ${esc(p.nivel || "")}</span></div>
+      <div class="equipos">${esc(p.home)}${pu((p.puestos || [])[0])} – ${esc(p.away)}${pu((p.puestos || [])[1])}</div>
+      ${p.p1 != null ? `<div class="barra"><div style="width:${p.p1 * 100}%;background:var(--local)">${pct(p.p1)}</div><div style="width:${p.px * 100}%;background:var(--empate)">${pct(p.px)}</div><div style="width:${p.p2 * 100}%;background:var(--visit)">${pct(p.p2)}</div></div>` : ""}
+      ${filaPick("🛡️", p.segura, "seg", p.segura && p.segura.cuota)}
+      ${filaPick("⚡", p.arriesgada)}
+      ${p.marcador ? `<div class="pick"><span class="m">🎯 Marcador ${p.marcador.h}-${p.marcador.a}</span><span class="p">${pct(p.marcador.prob)}</span><span class="c"></span></div>` : ""}
+      ${filaPick("🚩", p.corners)}${filaPick("🟨", p.tarjetas)}${filaPick("💥", p.paliza)}
+      ${(p.avisos || []).length || p.efecto_nombre ? `<div class="avisos">${(p.avisos || []).map((a) => `${a.icono} ${esc(a.texto)}`).join("<br>")}${p.efecto_nombre ? `<br>⚠️ ${esc(p.efecto_nombre)}` : ""}</div>` : ""}
+    </div>`).join("") : `<div class="vacio">No hay partidos ese día.</div>`;
+  $("#pie").innerHTML = "Las cuotas «@» son de Bet365 cuando hay (si no, aproximadas). Con 2-4 €, lo más sensato son las 🛡️ seguras y la combinada de 2. " +
+    "Para el detalle de cada partido, el diario y el presupuesto, abre el programa del PC.";
+}
+
+// ---- Avisos (notificaciones push) ------------------------------------------------------------
+function claveVapid(b64url) {
+  const p = "=".repeat((4 - (b64url.length % 4)) % 4), s = (b64url + p).replace(/-/g, "+").replace(/_/g, "/");
+  return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+}
+async function activarAvisos() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    alert("Este navegador no admite avisos. En iPhone: primero «Compartir → Añadir a pantalla de inicio» y abre la app desde ahí."); return;
+  }
+  if (!C.vapid) { alert("Los avisos aún no están configurados."); return; }
+  const permiso = await Notification.requestPermission();
+  if (permiso !== "granted") { alert("Sin permiso no se pueden mandar avisos. Actívalo en los ajustes del navegador."); return; }
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: claveVapid(C.vapid) });
+  const cuerpo = "Datos del móvil para los avisos (no los cambies). Pulsa «Submit new issue» / «Crear»:\n\n" + JSON.stringify(sub.toJSON());
+  const url = `https://github.com/${C.repo}/issues/new?title=${encodeURIComponent("Activar avisos")}&body=${encodeURIComponent(cuerpo)}`;
+  guardar("avisos", "1");
+  if (confirm("Último paso: guardar este móvil en GitHub.\n\nAceptar = es MI cuenta: se abre GitHub y pulsas el botón verde «Submit new issue».\nCancelar = es el móvil de un amigo: se copia un enlace para mandárselo al dueño de la web.")) { location.href = url; return; }
+  try {
+    if (navigator.share) await navigator.share({ title: "Activar avisos de PBCT", text: "Ábrelo con tu cuenta de GitHub y pulsa Submit new issue:", url });
+    else { await navigator.clipboard.writeText(url); alert("Enlace copiado. Mándaselo por WhatsApp al dueño de la web: él lo abre y pulsa «Submit new issue»."); }
+  } catch (e) { prompt("Copia este enlace y mándaselo al dueño de la web:", url); }
+}
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+$("#fClave").onsubmit = enviarClave;
+$("#fCodigo").onsubmit = enviarCodigo;
+$("#btnSalir").onclick = salir;
+$("#btnRecargar").onclick = cargarDatos;
+$("#btnAvisos").onclick = () => activarAvisos().catch((e) => alert("No se pudieron activar: " + e.message));
+if (leer("pbct_sesion", null)) cargarDatos(); else verLogin("clave");
+</script>
+</body>
+</html>
